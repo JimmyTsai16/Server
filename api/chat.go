@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/jimmy/server/chat"
 	"github.com/jimmy/server/model"
 	"log"
 	"net/http"
@@ -52,6 +51,4 @@ func (c *ChatAPI) ChatWS(ctx *gin.Context) {
 	}
 	defer ws.Close()
 
-	 rc := chat.RoomChan{WS: ws, RoomId: ctx.GetString("RoomId")}
-	 rc.Handler()
 }
