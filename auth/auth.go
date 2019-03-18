@@ -28,7 +28,6 @@ func (a *Auth) RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header.HeaderWrite(c)
 		JwtString := c.Request.Header.Get(JwtHeader)
-
 		/***** Handle WebSocket *****/
 		if c.Request.Header.Get("Upgrade") == "websocket" {
 			type RoomIdToken struct {
@@ -42,14 +41,13 @@ func (a *Auth) RequireAuth() gin.HandlerFunc {
 
 			JwtString = rt.AccessToken
 			c.Set("RoomId", rt.RoomId)
-			fmt.Println(rt)
 			//c.AbortWithStatus(http.StatusUnauthorized)
 			//return
 		}
 
 		if JwtString != "" {
 			if status, up := a.JwtAuth(JwtString); status {
-				fmt.Printf("JWTAuth Pass.")
+				fmt.Println("JWTAuth Pass.")
 				//c.JSON(http.StatusOK, userId)
 				c.Set("UserId", fmt.Sprintf("%d", up.UserId))
 			}else {

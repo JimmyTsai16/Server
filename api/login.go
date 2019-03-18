@@ -23,7 +23,7 @@ type LoginAPI struct {
 func (u *LoginAPI) Login(c *gin.Context) {
 	//c.JSON(http.StatusOK, map[string]string{ "status": "Logged in." })
 	type reqAuth struct {
-		UserName string
+		Username string
 		Password string
 	}
 	header.HeaderWrite(c)
@@ -33,9 +33,10 @@ func (u *LoginAPI) Login(c *gin.Context) {
 	if err != nil {
 		log.Println("Auth json decode failed: ", err)
 	}
-	fmt.Println(req.UserName, req.Password, "login.")
+	fmt.Println(req.Username, req.Password, "login.")
 
-	ua := u.DB.GetUserAuthByBasic(req.UserName, req.Password)
+	ua := u.DB.GetUserAuthByBasic(req.Username, req.Password)
+	fmt.Println(ua)
 	/****** if query result just have one match *********/
 	if ua != nil {
 		j := jwt.UserJwt{

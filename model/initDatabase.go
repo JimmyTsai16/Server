@@ -22,7 +22,7 @@ func InitDatabase()  {
 	db.AutoMigrate(&UserProfile{})
 	db.AutoMigrate(&UserApplications{})
 	db.AutoMigrate(&ChatRoom{})
-	db.AutoMigrate(&chatContent{})
+	db.AutoMigrate(&ChatContent{})
 	fmt.Println("Database Init Finish.")
 
 	db.Create(&UserAuth{

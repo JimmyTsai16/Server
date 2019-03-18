@@ -11,7 +11,7 @@ func Create(db *database.GormDatabase) (router *gin.Engine){
 
 	userAuthorization := auth.Auth{DB: db}
 	loginHandler := api.LoginAPI{DB: db}
-	chatHandler := api.ChatAPI{DB: db}
+	chatHandler := api.NewChatAPI(db)
 	userHandler := api.UserAPI{DB: db}
 
 	router = gin.Default()
@@ -28,7 +28,7 @@ func Create(db *database.GormDatabase) (router *gin.Engine){
 		user.GET("/:id", userHandler.GetUserProfile)
 	}
 
-	chat := router.Group(corsProxy+"/ws")
+	chat := router.Group(corsProxy+"/chat")
 	{
 		chat.Use(userAuthorization.RequireAuth())
 		chat.GET("/getrooms",chatHandler.GetRooms)

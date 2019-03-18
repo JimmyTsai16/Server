@@ -1,11 +1,15 @@
 package database
 
-import "github.com/jimmy/server/model"
+import (
+	"github.com/jimmy/server/model"
+	"strings"
+)
 
 func (d *GormDatabase) GetUserAuthByBasic(userName, password string) *model.UserAuth {
 	ua := new(model.UserAuth)
 	d.DB.Where("user_name = ? && password = ?", userName, password).Find(&ua)
-	if ua.UserName == userName && ua.Password == password {
+	/***** 不區分大小寫比較字串 *****/
+	if strings.EqualFold(ua.UserName, userName) && strings.EqualFold(ua.Password, password) {
 		return ua
 	}
 	return nil
@@ -14,7 +18,8 @@ func (d *GormDatabase) GetUserAuthByBasic(userName, password string) *model.User
 func (d *GormDatabase) GetUserAuthByToken(token string) *model.UserAuth {
 	ua := new(model.UserAuth)
 	d.DB.Where("token = ?", token).Find(&ua)
-	if ua.Token == token {
+	/***** 不區分大小寫比較字串 *****/
+	if strings.EqualFold(ua.Token, token) {
 		return ua
 	}
 	return nil

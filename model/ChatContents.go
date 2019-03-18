@@ -2,7 +2,7 @@ package model
 
 import "github.com/jinzhu/gorm"
 
-type chatContent struct {
+type ChatContent struct {
 	gorm.Model
 	UserId int
 	RoomId string

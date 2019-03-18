@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"github.com/jimmy/server/model"
-	"log"
+	"github.com/jimmy/server/ws"
 	"net/http"
 )
 
@@ -14,10 +13,17 @@ type ChatDatabase interface {
 	GetUserProfile(UserId string) *model.UserProfile
 	GetUserApplicationByUserId(UserId string) *model.UserApplications
 	GetRoomsByRoomIds(RoomIds[]string) []model.ChatRoom
+	SaveChatContent(cc *model.ChatContent)
+	GetChatContent(RoomId string) []model.ChatContent
+}
+
+func NewChatAPI(db ChatDatabase) ChatAPI {
+	return ChatAPI{DB: db, rooms: make(map[string]*ws.ChatWS)}
 }
 
 type ChatAPI struct {
 	DB ChatDatabase
+	rooms map[string]*ws.ChatWS
 }
 
 func (c *ChatAPI) GetRooms(ctx *gin.Context) {
@@ -27,28 +33,15 @@ func (c *ChatAPI) GetRooms(ctx *gin.Context) {
 		json.Unmarshal([]byte(uApp.RoomIds), &roomIds)
 
 		crs := c.DB.GetRoomsByRoomIds(roomIds)
-		fmt.Println(crs)
 		ctx.JSON(http.StatusOK, crs)
 	}
 }
 
 func (c *ChatAPI) ChatWS(ctx *gin.Context) {
-
-	var upGrader = websocket.Upgrader{
-		ReadBufferSize: 1024,
-		WriteBufferSize: 1024,
-		EnableCompression: false,
-		/*** CORS ***/
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
+	roomId := ctx.GetString("RoomId")
+	if c.rooms[roomId] == nil {
+		c.rooms[roomId] = ws.NewRoom(ctx.GetString("RoomId"), c.DB)
+		fmt.Println(ctx.GetString("RoomId"))
 	}
-	/******* Upgrade the connection to WebSocket **********/
-	ws, err := upGrader.Upgrade(ctx.Writer, ctx.Request , nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer ws.Close()
-
+	c.rooms[roomId].AddClient(ctx, ctx.GetString("UserId"))
 }
