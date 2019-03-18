@@ -28,6 +28,7 @@ func (a *Auth) RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header.HeaderWrite(c)
 		JwtString := c.Request.Header.Get(JwtHeader)
+
 		/***** Handle WebSocket *****/
 		if c.Request.Header.Get("Upgrade") == "websocket" {
 			type RoomIdToken struct {
@@ -49,7 +50,8 @@ func (a *Auth) RequireAuth() gin.HandlerFunc {
 			if status, up := a.JwtAuth(JwtString); status {
 				fmt.Println("JWTAuth Pass.")
 				//c.JSON(http.StatusOK, userId)
-				c.Set("UserId", fmt.Sprintf("%d", up.UserId))
+				c.Set("UserId", fmt.Sprintf("%d", up.ID))
+				c.Next()
 			}else {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, map[string]string{"Error": "Please login."})
 			}
@@ -57,7 +59,6 @@ func (a *Auth) RequireAuth() gin.HandlerFunc {
 			//c.Redirect(http.StatusMovedPermanently, "/login")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, map[string]string{"Error": "Please login."})
 		}
-		c.Next()
 	}
 }
 
@@ -75,8 +76,8 @@ func (a *Auth) JwtAuth(jwtString string) (status bool, userProfile *model.UserPr
 	j.JwtParse(jwtString)
 
 	ua := a.DB.GetUserAuthByToken(j.Token)
-	if ua.UserId != 0 {
-		userProfile = a.DB.GetUserProfile(strconv.Itoa(ua.UserId))
+	if ua.ID != 0 {
+		userProfile = a.DB.GetUserProfile(strconv.Itoa(int(ua.ID)))
 		return true, userProfile
 	}else{
 		return false, nil

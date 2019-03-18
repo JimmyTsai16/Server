@@ -30,18 +30,30 @@ func InitDatabase()  {
 		Password: sha256String("admin"),
 		Token: sha256String("admin" + time.Now().String()),
 	})
-
 	db.Create(&UserProfile{
 		UserName: "admin",
 		FirstName: "admin",
 		LastName: "admin",
 		Email: "admin@admin.com",
 	})
-
 	db.Create(&UserApplications{
 		UserName: "admin",
 	})
 
+	db.Create(&UserAuth{
+		UserName: "user1",
+		Password: sha256String("user1"),
+		Token: sha256String("admin" + time.Now().String()),
+	})
+	db.Create(&UserProfile{
+		UserName: "user1",
+		FirstName: "admin",
+		LastName: "admin",
+		Email: "admin@admin.com",
+	})
+	db.Create(&UserApplications{
+		UserName: "user1",
+	})
 }
 
 func sha256String(s string) string {

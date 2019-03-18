@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jimmy/server/model"
 	"github.com/jimmy/server/ws"
+	"log"
 	"net/http"
 )
 
@@ -15,6 +16,7 @@ type ChatDatabase interface {
 	GetRoomsByRoomIds(RoomIds[]string) []model.ChatRoom
 	SaveChatContent(cc *model.ChatContent)
 	GetChatContent(RoomId string) []model.ChatContent
+	CreateRoom(cr *model.ChatRoom)
 }
 
 func NewChatAPI(db ChatDatabase) ChatAPI {
@@ -24,6 +26,28 @@ func NewChatAPI(db ChatDatabase) ChatAPI {
 type ChatAPI struct {
 	DB ChatDatabase
 	rooms map[string]*ws.ChatWS
+}
+
+func (c *ChatAPI) CreateRoom(ctx *gin.Context) {
+	type reqInfo struct {
+		RoomName string `json:"RoomName"`
+		Users []string	`json:"Users"`
+	}
+	var r reqInfo
+	if err := ctx.BindJSON(&r); err != nil {
+		log.Println(err)
+	}
+
+	usersStr, _ := json.Marshal(r.Users)
+
+	cr := &model.ChatRoom{
+		RoomName: r.RoomName,
+		Users: string(usersStr),
+	}
+
+	c.DB.CreateRoom(cr)
+
+	fmt.Println(r.RoomName, r.Users)
 }
 
 func (c *ChatAPI) GetRooms(ctx *gin.Context) {

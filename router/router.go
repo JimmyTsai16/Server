@@ -25,12 +25,14 @@ func Create(db *database.GormDatabase) (router *gin.Engine){
 	{
 		user.Use(userAuthorization.RequireAuth())
 		user.GET("", userHandler.UserInit)
+		user.POST("", userHandler.CreateUser)
 		user.GET("/:id", userHandler.GetUserProfile)
 	}
 
 	chat := router.Group(corsProxy+"/chat")
 	{
 		chat.Use(userAuthorization.RequireAuth())
+		chat.POST("/createroom", chatHandler.CreateRoom)
 		chat.GET("/getrooms",chatHandler.GetRooms)
 		chat.GET("/chatws/:roomid/:token", chatHandler.ChatWS)
 	}

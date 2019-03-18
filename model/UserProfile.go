@@ -7,10 +7,11 @@ import (
 
 type UserProfile struct {
 	gorm.Model
-	UserId int `gorm:"type:varchar(127);AUTO_INCREMENT;unique"`
 	UserName string `gorm:"type:varchar(100);unique"`
 	FirstName string
 	LastName string
+	Friends string `gorm:"type:longtext"`
+	FriendChecking string `gorm:"type:longtext"`
 	Age int
 	BirthDay time.Time
 	Email string

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -34,7 +35,7 @@ func (u *LoginAPI) Login(c *gin.Context) {
 		log.Println("Auth json decode failed: ", err)
 	}
 	fmt.Println(req.Username, req.Password, "login.")
-
+	req.Password = fmt.Sprintf("%X", sha256.Sum256([]byte(req.Password)))
 	ua := u.DB.GetUserAuthByBasic(req.Username, req.Password)
 	fmt.Println(ua)
 	/****** if query result just have one match *********/

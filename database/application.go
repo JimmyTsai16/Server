@@ -1,14 +1,18 @@
 package database
 
 import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
 	"github.com/jimmy/server/model"
 	"strconv"
+	"time"
 )
 
 func (d *GormDatabase) GetUserApplicationByUserId(UserId string) *model.UserApplications {
 	uApp := new(model.UserApplications)
-	d.DB.Where("user_id = ?", UserId).Find(&uApp)
-	if strconv.Itoa(uApp.UserId) == UserId {
+	d.DB.Where("ID = ?", UserId).Find(&uApp)
+	if strconv.Itoa(int(uApp.ID)) == UserId {
 		return uApp
 	}
 	return nil
@@ -21,6 +25,26 @@ func (d *GormDatabase) GetRoomsByRoomIds(RoomIds[]string) []model.ChatRoom {
 		return cr
 	}
 	return nil
+}
+
+func (d *GormDatabase) CreateRoom(cr *model.ChatRoom) {
+	cr.RoomId = fmt.Sprintf("%x", sha256.Sum256([]byte(time.Now().String())))
+	d.DB.Create(&cr)
+
+	var users []string
+	json.Unmarshal([]byte(cr.Users), &users)
+	var ca []model.UserApplications
+	d.DB.Where("user_name IN (?)", users).Find(&ca)
+	fmt.Println(ca)
+	for _, db := range ca {
+		var roomsId []string
+		json.Unmarshal([]byte(db.RoomIds), &roomsId)
+		fmt.Println(roomsId)
+		roomsId = append(roomsId, cr.RoomId)
+		roomsIdStr, _ := json.Marshal(roomsId)
+		db.RoomIds = string(roomsIdStr)
+		d.DB.Save(&db)
+	}
 }
 
 func (d *GormDatabase) SaveChatContent(cc *model.ChatContent) {
