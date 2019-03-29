@@ -4,19 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/jimmy/server/model"
+	"github.com/jimmy/server/models"
 	"github.com/jimmy/server/ws"
 	"log"
 	"net/http"
 )
 
 type ChatDatabase interface {
-	GetUserProfile(UserId string) *model.UserProfile
-	GetUserApplicationByUserId(UserId string) *model.UserApplications
-	GetRoomsByRoomIds(RoomIds[]string) []model.ChatRoom
-	SaveChatContent(cc *model.ChatContent)
-	GetChatContent(RoomId string) []model.ChatContent
-	CreateRoom(cr *model.ChatRoom)
+	GetUserProfile(UserId string) *models.UserProfile
+	GetUserApplicationByUserId(UserId string) *models.UserApplications
+	GetRoomsByRoomIds(RoomIds[]string) []models.ChatRoom
+	SaveChatContent(cc *models.ChatContent)
+	GetChatContent(RoomId string) []models.ChatContent
+	CreateRoom(cr *models.ChatRoom)
 }
 
 func NewChatAPI(db ChatDatabase) ChatAPI {
@@ -40,7 +40,7 @@ func (c *ChatAPI) CreateRoom(ctx *gin.Context) {
 
 	usersStr, _ := json.Marshal(r.Users)
 
-	cr := &model.ChatRoom{
+	cr := &models.ChatRoom{
 		RoomName: r.RoomName,
 		Users: string(usersStr),
 	}

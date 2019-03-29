@@ -3,7 +3,7 @@ package ws
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/jimmy/server/model"
+	"github.com/jimmy/server/models"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"log"
 	"net/http"
@@ -31,5 +31,5 @@ func NewWS(ctx *gin.Context) *websocket.Conn {
 
 type Client struct {
 	Conn *websocket.Conn
-	UP *model.UserProfile
+	UP *models.UserProfile
 }

@@ -4,15 +4,15 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/jimmy/server/model"
+	"github.com/jimmy/server/models"
 	"log"
 	"net/http"
 )
 
 
 type UserDatabase interface {
-	GetUserProfile(UserId string) *model.UserProfile
-	CreateUser(ua *model.UserAuth, up *model.UserProfile)
+	GetUserProfile(UserId string) *models.UserProfile
+	CreateUser(ua *models.UserAuth, up *models.UserProfile)
 }
 
 type UserAPI struct {
@@ -39,12 +39,12 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 
 		r.Password = fmt.Sprintf("%x", sha256.Sum256([]byte(r.Password)))
 
-		ua := &model.UserAuth{
+		ua := &models.UserAuth{
 			UserName: r.UserName,
 			Password: r.Password,
 		}
 
-		up := &model.UserProfile{
+		up := &models.UserProfile{
 			UserName:  r.UserName,
 			FirstName: r.FirstName,
 			LastName:  r.LastName,
@@ -52,7 +52,7 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 			Age:       r.Age,
 		}
 		a.DB.CreateUser(ua, up)
-		//a.DB.CreateUser(model.UserAuth{UserName:"us", Password:"8C6976E5B5410415BDE908BD4DEE15DFB167A9C873FC4BB8A81F6F2AB448A918"}, model.UserProfile{UserName:"us"})
+		//a.DB.CreateUser(models.UserAuth{UserName:"us", Password:"8C6976E5B5410415BDE908BD4DEE15DFB167A9C873FC4BB8A81F6F2AB448A918"}, models.UserProfile{UserName:"us"})
 		fmt.Println("CreateUser: ", ua.UserName)
 	}
 }

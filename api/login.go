@@ -7,14 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jimmy/server/header"
 	"github.com/jimmy/server/jwt"
-	"github.com/jimmy/server/model"
+	"github.com/jimmy/server/models"
 	"log"
 	"net/http"
 	"time"
 )
 
 type LoginDatabase interface {
-	GetUserAuthByBasic(userName, password string) *model.UserAuth
+	GetUserAuthByBasic(userName, password string) *models.UserAuth
 }
 
 type LoginAPI struct {

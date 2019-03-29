@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/jimmy/server/model"
+	"github.com/jimmy/server/models"
 	"log"
 )
 
@@ -15,7 +15,7 @@ func main() {
 	//route := gin.Default()
 	//route.POST("/testing", startPage)
 	//route.Run(":8085")
-	model.InitDatabase()
+	models.InitDatabase()
 }
 
 func startPage(c *gin.Context) {

@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/jimmy/server/model"
+	"github.com/jimmy/server/models"
 	"log"
 	"sync"
 	"time"
 )
 
 type ChatContentDatabase interface {
-	GetUserProfile(UserId string) *model.UserProfile
-	SaveChatContent(cc *model.ChatContent)
-	GetChatContent(RoomId string) []model.ChatContent
+	GetUserProfile(UserId string) *models.UserProfile
+	SaveChatContent(cc *models.ChatContent)
+	GetChatContent(RoomId string) []models.ChatContent
 }
 
 /*
@@ -24,7 +24,7 @@ Launch the write routine to send message to each connection.
 func NewRoom(Id string, db ChatContentDatabase) *ChatWS {
 	c := &ChatWS{
 		Clients: make(map[string]*Client),
-		msg:    make(chan *model.ChatContent, 5),
+		msg:    make(chan *models.ChatContent, 5),
 		RoomId: Id,
 		DB:     db,
 	}
@@ -35,7 +35,7 @@ func NewRoom(Id string, db ChatContentDatabase) *ChatWS {
 type ChatWS struct {
 	Clients map[string]*Client
 	lock    sync.RWMutex
-	msg     chan *model.ChatContent
+	msg     chan *models.ChatContent
 	DB      ChatContentDatabase
 	RoomId  string
 }
@@ -61,7 +61,7 @@ func (c *ChatWS) writeChatContent(ws *websocket.Conn) {
 }
 
 func (c *ChatWS) readRoutine(ws *websocket.Conn, connHash string) {
-	var cc *model.ChatContent
+	var cc *models.ChatContent
 	for {
 		err := ws.ReadJSON(&cc)
 		if err != nil {

@@ -4,13 +4,13 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/jimmy/server/model"
+	"github.com/jimmy/server/models"
 	"strconv"
 	"time"
 )
 
-func (d *GormDatabase) GetUserApplicationByUserId(UserId string) *model.UserApplications {
-	uApp := new(model.UserApplications)
+func (d *GormDatabase) GetUserApplicationByUserId(UserId string) *models.UserApplications {
+	uApp := new(models.UserApplications)
 	d.DB.Where("ID = ?", UserId).Find(&uApp)
 	if strconv.Itoa(int(uApp.ID)) == UserId {
 		return uApp
@@ -18,8 +18,8 @@ func (d *GormDatabase) GetUserApplicationByUserId(UserId string) *model.UserAppl
 	return nil
 }
 
-func (d *GormDatabase) GetRoomsByRoomIds(RoomIds[]string) []model.ChatRoom {
-	var cr []model.ChatRoom
+func (d *GormDatabase) GetRoomsByRoomIds(RoomIds[]string) []models.ChatRoom {
+	var cr []models.ChatRoom
 	d.DB.Where("room_id IN (?)", RoomIds).Find(&cr)
 	if len(cr) > 0 {
 		return cr
@@ -27,13 +27,13 @@ func (d *GormDatabase) GetRoomsByRoomIds(RoomIds[]string) []model.ChatRoom {
 	return nil
 }
 
-func (d *GormDatabase) CreateRoom(cr *model.ChatRoom) {
+func (d *GormDatabase) CreateRoom(cr *models.ChatRoom) {
 	cr.RoomId = fmt.Sprintf("%x", sha256.Sum256([]byte(time.Now().String())))
 	d.DB.Create(&cr)
 
 	var users []string
 	json.Unmarshal([]byte(cr.Users), &users)
-	var ca []model.UserApplications
+	var ca []models.UserApplications
 	d.DB.Where("user_name IN (?)", users).Find(&ca)
 	fmt.Println(ca)
 	for _, db := range ca {
@@ -47,12 +47,12 @@ func (d *GormDatabase) CreateRoom(cr *model.ChatRoom) {
 	}
 }
 
-func (d *GormDatabase) SaveChatContent(cc *model.ChatContent) {
+func (d *GormDatabase) SaveChatContent(cc *models.ChatContent) {
 	d.DB.Create(&cc)
 }
 
-func (d *GormDatabase) GetChatContent(RoomId string) []model.ChatContent {
-	var cc []model.ChatContent
+func (d *GormDatabase) GetChatContent(RoomId string) []models.ChatContent {
+	var cc []models.ChatContent
 	d.DB.Where("room_id = ?", RoomId).Order("id desc").Limit(15).Find(&cc)
 	//q := "SELECT *	from chat_contents	WHERE id IN (SELECT * from (select id FROM chat_contents ORDER BY id desc	LIMIT 15) as t)	ORDER BY id"
 	//sub1 := d.DB.Table("chat_contents").Select("id").Where("room_id = ?", RoomId).Order("id desc").Limit(15).QueryExpr()
