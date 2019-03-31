@@ -10,7 +10,7 @@ import (
 func Create(db *database.GormDatabase, sysInfoDb *database.GormDatabase) (router *gin.Engine){
 
 	// System Information Handle API.
-	sysInfoHandle := api.SysInfoAPI{DB: sysInfoDb}
+	sysInfoHandle := api.NewSysInfoApi(sysInfoDb)
 
 	// Member Information Handle API.
 	userAuthorization := auth.Auth{DB: db}
