@@ -8,6 +8,7 @@ import (
 	"github.com/jimmy/server/models"
 	"github.com/jimmy/server/ws"
 	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 	"github.com/shirou/gopsutil/process"
@@ -32,6 +33,7 @@ const (
 	processStat		= "processStat"
 	netIOCounter	= "netIOCounter"
 	connectionsStat	= "connectionsStat"
+	hostInfo		= "hostInfo"
 )
 
 var InfoTypeEnum = map[string]int{
@@ -42,6 +44,7 @@ var InfoTypeEnum = map[string]int{
 	processStat:		4,
 	netIOCounter:		5,
 	connectionsStat:	6,
+	hostInfo:			7,
 }
 
 type SysInfoAPI struct {
@@ -66,16 +69,13 @@ func (d *SysInfoAPI) GetCpuInfoBetween(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &x)
 }
 
-//func (d *SysInfoAPI) GetTemp(ctx *gin.Context) {
-//	start, end := parseTime(ctx)
-//
-//	t := d.DB.GetSysInfoBetween(start, end, &models.CPUTemp{})
-//	cpuTemps, err := t.([]models.CPUTemp)
-//	if !err {
-//		log.Fatal("Type assertion if fail: ", err)
-//	}
-//
-//}
+func (d *SysInfoAPI) GetHostInfo(ctx *gin.Context) {
+	hostInfo, _ := host.Info()
+	s, _ := host.SensorsTemperatures()
+	fmt.Println(s)
+
+	ctx.JSON(http.StatusOK, &hostInfo)
+}
 
 func(d *SysInfoAPI) GetSysInfo(ctx *gin.Context) {
 	var info string
@@ -112,8 +112,16 @@ func (d *SysInfoAPI) GetSysInfoWS(ctx *gin.Context) {
 	var services []string
 	conn := ws.NewWS(ctx) // Upgrade the connection from GET to WebSocket.
 	defer conn.Close()
+
+	c := &client{
+		conn: conn,
+		sendingMessage: make(chan *message, 8),
+		service: make([]bool, len(InfoTypeEnum)),
+	}
+
 	defer func(){
 		fmt.Println("Client offline")
+		c.closed = true
 		for _, s := range services {
 			d.SIR.RWMux.Lock()
 			d.SIR.serviceClientsCount[s] -= 1
@@ -121,12 +129,6 @@ func (d *SysInfoAPI) GetSysInfoWS(ctx *gin.Context) {
 		}
 	}()
 
-	c := &client{
-		conn: conn,
-		sendingMessage: make(chan *message, 16),
-		service: make([]bool, len(InfoTypeEnum)),
-		closeSig: make(chan struct{}),
-	}
 
 	go c.ClientRoutine()
 	d.SIR.AppendClient(c)
@@ -136,7 +138,6 @@ func (d *SysInfoAPI) GetSysInfoWS(ctx *gin.Context) {
 		var subscribeType string
 		if err := conn.ReadJSON(&recv); err != nil {
 			log.Println("ws readjson fail: ", err)
-			c.Close()
 			return
 		} else {
 			fmt.Println(recv)
@@ -178,11 +179,8 @@ type sysInfoService struct {
 type client struct {
 	conn 			*websocket.Conn
 	sendingMessage	chan *message
-	chanClosed		bool
 	service			[]bool
 	closed			bool
-	closeSig		chan struct{}
-	once			sync.Once
 	RWMux 			sync.RWMutex
 }
 
@@ -205,6 +203,7 @@ func NewSysInfoService() *sysInfoService {
 	s.serviceClosed[processStat] = true
 	s.serviceClosed[netIOCounter] = true
 	s.serviceClosed[connectionsStat] = true
+	s.serviceClosed[hostInfo] = true
 
 	for i := range InfoTypeEnum {
 		s.serviceClientsCount[i] = 0
@@ -225,34 +224,24 @@ func NewSysInfoService() *sysInfoService {
 
 	// Use channel to avoid websocket concurrent writing.
 	go func() {
-		defer func() {log.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")}()
 		for {
 			select {
 			case d := <-s.sendingMessage:
-				if len(s.Clients) == 0 {
-					for i:= range s.serviceClosed {
-						s.serviceClosed[i] = true
-					}
-				}
-				for i, c := range s.Clients {
+
+				for i := 0; i < len(s.Clients); i++ {
+					c := s.Clients[i]
 					if c.closed {
-						if len(s.Clients) > i {
-							s.Clients = append(s.Clients[:i], s.Clients[i+1:]...)
-						} else {
-							s.Clients = s.Clients[:i]
-						}
+						c.Close()
+						s.RWMux.Lock()
+						s.Clients = append(s.Clients[:i], s.Clients[i + 1:]...)
+						s.RWMux.Unlock()
+						i--
 						continue
 					}
-
 					if c.service[InfoTypeEnum[d.InfoType]] {
-						c.RWMux.Lock()
 						c.sendingMessage <- d
-						c.RWMux.Unlock()
 					}
 				}
-			// default:
-				// time.Sleep(time.Millisecond * 100)
-				// fmt.Println("idle")
 			}
 		}
 	}()
@@ -311,9 +300,10 @@ func (c *client) ClientRoutine() {
 			return
 		}
 
+
 		if err := c.conn.WriteJSON(d); err != nil {
 			// log.Println("ws writeJson error: ", err)
-			c.Close()
+			return
 		}
 		//select {
 		//case d := <-c.sendingMessage:
@@ -329,14 +319,7 @@ func (c *client) ClientRoutine() {
 }
 
 func (c *client) Close(){
-	c.RWMux.Lock()
-	defer c.RWMux.Unlock()
-	c.closed = true
-	c.conn.Close()
-	if !c.chanClosed {
-		c.chanClosed = true
-		close(c.sendingMessage)
-	}
+	close(c.sendingMessage)
 }
 
 
@@ -593,6 +576,33 @@ func (s *sysInfoService) Close(serviceType string) {
 	s.RWMux.Lock()
 	defer s.RWMux.Unlock()
 	s.serviceClosed[serviceType] = true
+}
+
+func (s *sysInfoService) SaveHostInfoRoutine(sec uint32) {
+	defer s.Close(hostInfo)
+	for {
+
+		if s.serviceClosed[hostInfo] {
+			log.Println(hostInfo, "Routine have closed")
+			return
+		}
+
+		var sum float64
+		for i := uint32(0); i < sec; i++ {
+			p, err := cpu.Percent(time.Second, false)
+			if err != nil {
+				log.Println("Get cpu information fail: ", err)
+				return
+			}
+			sum += p[0]
+		}
+		mean := sum / float64(sec)
+		s.sendingMessage <- &message{
+			InfoType: hostInfo,
+			Data:     fmt.Sprintf("%f", mean),
+		}
+
+	}
 }
 
 func parseTime(ctx *gin.Context) (start time.Time, end time.Time) {

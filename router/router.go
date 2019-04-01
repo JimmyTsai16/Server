@@ -5,6 +5,8 @@ import (
 	"github.com/jimmy/server/api"
 	"github.com/jimmy/server/auth"
 	"github.com/jimmy/server/database"
+	"net/http"
+	_ "net/http/pprof"
 )
 
 func Create(db *database.GormDatabase, sysInfoDb *database.GormDatabase) (router *gin.Engine){
@@ -31,6 +33,7 @@ func Create(db *database.GormDatabase, sysInfoDb *database.GormDatabase) (router
 	sysInfo := router.Group(corsProxy + "/sysinfo")
 	{
 		sysInfo.GET("/multiple/:info/:startDate/:endDate", sysInfoHandle.GetSysInfo)
+		sysInfo.GET("/host", sysInfoHandle.GetHostInfo)
 		sysInfo.GET("/ws", sysInfoHandle.GetSysInfoWS)
 		// sysInfo.GET("/cpuinfo/:startDate/:endDate", sysInfoHandle.GetCpuInfoBetween)
 		// sysInfo.GET("/cputemp/:startDate/:endDate", sysInfoHandle.GetTemp)
@@ -39,7 +42,7 @@ func Create(db *database.GormDatabase, sysInfoDb *database.GormDatabase) (router
 	user := router.Group(corsProxy+"/user")
 	{
 		user.Use(userAuthorization.MiddleWare())
-		user.GET("", userHandler.UserInit)
+		user.GET("", userHandler.UserInfo)
 		user.POST("", userHandler.CreateUser)
 		user.GET("/:id", userHandler.GetUserProfile)
 	}
@@ -52,6 +55,42 @@ func Create(db *database.GormDatabase, sysInfoDb *database.GormDatabase) (router
 		chat.GET("/chatws/:roomid/:token", chatHandler.ChatWS)
 	}
 
+	//rt := make(chan string, 10)
+
+	//go func() {
+	//	gr := ""
+	//	for {
+	//		ngr := fmt.Sprintln("Number of go routine: ", runtime.NumGoroutine())
+	//		if gr != ngr {
+	//			gr = ngr
+	//			rt <- gr
+	//		}
+	//
+	//		time.Sleep(time.Millisecond * 600)
+	//	}
+	//}()
+
+	go func() {
+		http.ListenAndServe("0.0.0.0:8081", nil)
+	}()
+
+	//go func() {
+	//	for {
+	//		var gcs debug.GCStats
+	//		fmt.Println("Number of go routine: ", runtime.NumGoroutine())
+	//		fmt.Println("Garbage collection stat: ")
+	//		debug.ReadGCStats(&gcs)
+	//		fmt.Println(gcs)
+	//
+	//		fmt.Println("MemStat: ")
+	//		var mems runtime.MemStats
+	//		runtime.ReadMemStats(&mems)
+	//		fmt.Printf("%+v\n", mems)
+	//
+	//
+	//		time.Sleep(time.Millisecond * 2000)
+	//	}
+	//}()
 
 	return router
 }

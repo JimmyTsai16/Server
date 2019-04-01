@@ -70,7 +70,7 @@ func (a *UserAPI) GetUserProfile(ctx *gin.Context) {
 	}
 }
 
-func (a *UserAPI) UserInit(ctx *gin.Context) {
+func (a *UserAPI) UserInfo(ctx *gin.Context) {
 	up := a.DB.GetUserProfile(ctx.GetString("UserId"))
 	ctx.JSON(http.StatusOK, up)
 }
