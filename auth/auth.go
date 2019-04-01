@@ -2,10 +2,10 @@ package auth
 
 import (
 	"fmt"
+	"github.com/JimmyTsai16/server/header"
+	"github.com/JimmyTsai16/server/jwt"
+	"github.com/JimmyTsai16/server/models"
 	"github.com/gin-gonic/gin"
-	"github.com/jimmy/server/header"
-	"github.com/jimmy/server/jwt"
-	"github.com/jimmy/server/models"
 	"net/http"
 	"strconv"
 )

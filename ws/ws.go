@@ -1,9 +1,9 @@
 package ws
 
 import (
+	"github.com/JimmyTsai16/server/models"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/jimmy/server/models"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"log"
 	"net/http"

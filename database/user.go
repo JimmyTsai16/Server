@@ -3,7 +3,7 @@ package database
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/jimmy/server/models"
+	"github.com/JimmyTsai16/server/models"
 	"strconv"
 	"time"
 )

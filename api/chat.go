@@ -3,9 +3,9 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/JimmyTsai16/server/models"
+	"github.com/JimmyTsai16/server/ws"
 	"github.com/gin-gonic/gin"
-	"github.com/jimmy/server/models"
-	"github.com/jimmy/server/ws"
 	"log"
 	"net/http"
 )

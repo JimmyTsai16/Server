@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/jimmy/server/models"
+	"github.com/JimmyTsai16/server/models"
 	"log"
 	"time"
 )

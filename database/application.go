@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/jimmy/server/models"
+	"github.com/JimmyTsai16/server/models"
 	"strconv"
 	"time"
 )

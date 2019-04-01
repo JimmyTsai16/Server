@@ -3,10 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/JimmyTsai16/server/models"
+	"github.com/JimmyTsai16/server/ws"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/jimmy/server/models"
-	"github.com/jimmy/server/ws"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"

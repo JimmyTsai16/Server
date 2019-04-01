@@ -1,10 +1,10 @@
 package router
 
 import (
+	"github.com/JimmyTsai16/server/api"
+	"github.com/JimmyTsai16/server/auth"
+	"github.com/JimmyTsai16/server/database"
 	"github.com/gin-gonic/gin"
-	"github.com/jimmy/server/api"
-	"github.com/jimmy/server/auth"
-	"github.com/jimmy/server/database"
 	"net/http"
 	_ "net/http/pprof"
 )
@@ -50,8 +50,8 @@ func Create(db *database.GormDatabase, sysInfoDb *database.GormDatabase) (router
 	chat := router.Group(corsProxy+"/chat")
 	{
 		chat.Use(userAuthorization.MiddleWare())
-		chat.POST("/createroom", chatHandler.CreateRoom)
-		chat.GET("/getrooms",chatHandler.GetRooms)
+		chat.POST("/room", chatHandler.CreateRoom)
+		chat.GET("/rooms",chatHandler.GetRooms)
 		chat.GET("/chatws/:roomid/:token", chatHandler.ChatWS)
 	}
 

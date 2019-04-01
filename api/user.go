@@ -3,8 +3,8 @@ package api
 import (
 	"crypto/sha256"
 	"fmt"
+	"github.com/JimmyTsai16/server/models"
 	"github.com/gin-gonic/gin"
-	"github.com/jimmy/server/models"
 	"log"
 	"net/http"
 )
